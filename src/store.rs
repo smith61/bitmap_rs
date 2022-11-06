@@ -3,6 +3,14 @@ use std::cmp::PartialEq;
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not};
 
 ///
+/// Returns the minimum required size of an array of type B to contain enough
+/// space for `bit_count` addressable bits.
+/// 
+pub const fn array_size_for_bit_count<B: BitStore>(bit_count: usize) -> usize {
+    crate::polyfill::div_ceil(bit_count, B::BIT_COUNT)
+}
+
+///
 /// This trait represents an abstraction over storage that contains indexable
 /// bits.
 /// 

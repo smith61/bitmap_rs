@@ -44,7 +44,7 @@ impl Mutability for Mut {
 }
 
 
-pub(crate) fn div_ceil(lhs: usize, rhs: usize) -> usize {
+pub(crate) const fn div_ceil(lhs: usize, rhs: usize) -> usize {
     let result = lhs / rhs;
     if (lhs % rhs) != 0 {
         result + 1
