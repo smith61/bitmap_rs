@@ -1,5 +1,6 @@
 
 use super::*;
+use crate::traits::{BitmapOpts, BitmapOptsMut};
 
 #[test]
 fn test_clear_bit_range() {

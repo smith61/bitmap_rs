@@ -2,6 +2,7 @@
 use super::BitmapSliceImpl;
 use crate::polyfill::{Mut, Mutability};
 use crate::store::BitStore;
+use crate::traits::BitmapOpts;
 
 use std::marker::PhantomData;
 use std::ops::Range;
@@ -113,8 +114,9 @@ impl<'a, B: BitStore, M: Mutability> BitmapSliceImpl<'a, B, M> {
 
 }
 
-impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Mut> {#[inline(always)]
-
+impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Mut> {
+    
+    #[inline(always)]
     pub(super) fn modify_bit(&mut self, bit_index: usize, operation: BitmapSliceOperation) {
         let (slot, offset) = self.translate_bit_index(bit_index);
         unsafe {

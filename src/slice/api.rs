@@ -1,5 +1,6 @@
 
 use crate::store::BitStore;
+use crate::traits::{BitmapOpts, BitmapOptsMut};
 use crate::polyfill::{Const, Mut, Mutability};
 
 use super::{BitmapSliceIter, BitmapSliceRangeIter};
@@ -142,141 +143,6 @@ impl<'a, B: BitStore, M: Mutability> BitmapSliceImpl<'a, B, M> {
     }
 
     ///
-    /// This routine returns the zero based index of the first clear bit in the bitmap.
-    /// If this slice does not contain any clear bits, None is returned.
-    /// 
-    pub fn find_first_clear(&self) -> Option<usize> {
-        self.find_next_clear_from(0)
-    }
-
-    ///
-    /// This routine returns a tuple containing the zero based index of the first clear bit and the
-    /// total count of contigious clear bits starting at that index. If this slice does not contain
-    /// any clear bits, None is returned.
-    ///
-    pub fn find_first_clear_range(&self) -> Option<(usize, usize)> {
-        self.find_next_clear_range_from(0)
-    }
-
-    ///
-    /// This routine returns a tuple containing the zero based index of the first clear bit and the
-    /// total count of contigious clear bits starting at that index capped to `maximum_run_length`.
-    /// If this slice does not contain any clear bits, None is returned.
-    ///
-    pub fn find_first_clear_range_capped(&self, maximum_run_length: usize) -> Option<(usize, usize)> {
-        self.find_next_clear_range_from_capped(0, maximum_run_length)
-    }
-
-    ///
-    /// This routine returns the zero based index of the first clear bit in the slice starting at
-    /// the provided `starting_bit`. If this slice does not contain any clear bits starting at
-    /// `starting_bit`, None is returned.
-    /// 
-    pub fn find_next_clear_from(&self, starting_bit: usize) -> Option<usize> {
-        self.find_next_in_range::<true>(starting_bit..self.size())
-    }
-
-    ///
-    /// This routine returns a tuple containing the zero based index of the first clear bit starting at
-    /// the provided `starting_bit` and the total count of contigious clear bits starting at that index.
-    /// If this slice does not contain any clear bits starting at `starting_bit`, None is returned.
-    ///
-    pub fn find_next_clear_range_from(&self, starting_bit: usize) -> Option<(usize, usize)> {
-        self.find_next_clear_range_from_capped(starting_bit, usize::MAX)
-    }
-
-    ///
-    /// This routine returns a tuple containing the zero based index of the first clear bit starting at
-    /// the provided `starting_bit` and the total count of contigious clear bits starting at that index
-    /// capped to `maximum_run_length`. If this slice does not contain any clear bits starting at
-    /// `starting_bit`, None is returned.
-    ///
-    pub fn find_next_clear_range_from_capped(&self, starting_bit: usize, maximum_run_length: usize) -> Option<(usize, usize)> {
-        self.find_next_in_range::<true>(starting_bit..self.size())
-            .map(|first_clear_bit| {
-                let maximum_run_length = std::cmp::min(maximum_run_length, self.size() - first_clear_bit);
-                let next_set_bit =
-                    self.find_next_in_range::<false>((first_clear_bit + 1)..(first_clear_bit + maximum_run_length))
-                        .unwrap_or(first_clear_bit + maximum_run_length);
-
-                (first_clear_bit, next_set_bit - first_clear_bit)
-            })
-    }
-
-    ///
-    /// This routine returns the zero based index of the first set bit in the slice.
-    /// If this slice does not contain any set bits, None is returned.
-    /// 
-    pub fn find_first_set(&self) -> Option<usize> {
-        self.find_next_set_from(0)
-    }
-
-    ///
-    /// This routine returns a tuple containing the zero based index of the first set bit and the
-    /// total count of contigious set bits starting at that index. If this slice does not contain
-    /// any set bits, None is returned.
-    ///
-    pub fn find_first_set_range(&self) -> Option<(usize, usize)> {
-        self.find_next_set_range_from(0)
-    }
-
-    ///
-    /// This routine returns a tuple containing the zero based index of the first set bit and the
-    /// total count of contigious set bits starting at that index capped to `maximum_run_length`.
-    /// If this slice does not contain any set bits, None is returned.
-    ///
-    pub fn find_first_set_range_capped(&self, maximum_run_length: usize) -> Option<(usize, usize)> {
-        self.find_next_set_range_from_capped(0, maximum_run_length)
-    }
-
-    ///
-    /// This routine returns the zero based index of the first set bit in the slice starting at
-    /// the provided `starting_bit`. If this slice does not contain any set bits starting at
-    /// `starting_bit`, None is returned.
-    /// 
-    pub fn find_next_set_from(&self, starting_bit: usize) -> Option<usize> {
-        self.find_next_in_range::<false>(starting_bit..self.size())
-    }
-
-    ///
-    /// This routine returns a tuple containing the zero based index of the first set bit starting at
-    /// the provided `starting_bit` and the total count of contigious set bits starting at that index.
-    /// If this slice does not contain any set bits starting at `starting_bit`, None is returned.
-    ///
-    pub fn find_next_set_range_from(&self, starting_bit: usize) -> Option<(usize, usize)> {
-        self.find_next_set_range_from_capped(starting_bit, usize::MAX)
-    }
-
-    ///
-    /// This routine returns a tuple containing the zero based index of the first set bit starting at
-    /// the provided `starting_bit` and the total count of contigious set bits starting at that index
-    /// capped to `maximum_run_length`. If this slice does not contain any set bits starting at
-    /// `starting_bit`, None is returned.
-    ///
-    pub fn find_next_set_range_from_capped(&self, starting_bit: usize, maximum_run_length: usize) -> Option<(usize, usize)> {
-        self.find_next_in_range::<false>(starting_bit..self.size())
-            .map(|first_set_bit| {
-                let maximum_run_length = std::cmp::min(maximum_run_length, self.size() - first_set_bit);
-                let next_clear_bit =
-                    self.find_next_in_range::<true>((first_set_bit + 1)..(first_set_bit + maximum_run_length))
-                        .unwrap_or(first_set_bit + maximum_run_length);
-
-                (first_set_bit, next_clear_bit - first_set_bit)
-            })
-    }
-
-    ///
-    /// This routine returns `true` if the bit at the provided index is set, otherwise returns false.
-    /// 
-    pub fn get_bit(&self, bit_index: usize) -> bool {
-        let (slot, offset) = self.translate_bit_index(bit_index);
-        let slot_contents = 
-            unsafe { self.buffer_address.as_ptr().add(slot).read() };
-
-        (slot_contents & B::create_bit_mask(offset)) != B::ZERO
-    }
-
-    ///
     /// Returns an iterator over all set bits in this slice.
     /// 
     pub fn iter(&self) -> BitmapSliceIter<B> {
@@ -288,13 +154,6 @@ impl<'a, B: BitStore, M: Mutability> BitmapSliceImpl<'a, B, M> {
     /// 
     pub fn range_iter(&self) -> BitmapSliceRangeIter<B> {
         BitmapSliceRangeIter::new(self.as_const())
-    }
-
-    ///
-    /// This routine returns the total size in bits of this slice.
-    /// 
-    pub fn size(&self) -> usize {
-        self.bit_count
     }
 
     ///
@@ -373,35 +232,31 @@ impl<'a, B: BitStore, M: Mutability> BitmapSliceImpl<'a, B, M> {
 
 }
 
+impl<'a, B: BitStore, M: Mutability> BitmapOpts for BitmapSliceImpl<'a, B, M> {
+    
+    fn find_next_clear_in_range(&self, range: Range<usize>) -> Option<usize> {
+        self.find_next_in_range::<true>(range)
+    }
+
+    fn find_next_set_in_range(&self, range: Range<usize>) -> Option<usize> {
+        self.find_next_in_range::<false>(range)
+    }
+
+    fn get_bit(&self, bit_index: usize) -> bool {
+        let (slot, offset) = self.translate_bit_index(bit_index);
+        let slot_contents = 
+            unsafe { self.buffer_address.as_ptr().add(slot).read() };
+
+        (slot_contents & B::create_bit_mask(offset)) != B::ZERO
+    }
+
+    fn size(&self) -> usize {
+        self.bit_count
+    }
+    
+}
+
 impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Mut> {
-
-    ///
-    /// This routine clears the bit at the provided index.
-    /// 
-    pub fn clear_bit(&mut self, bit_index: usize) {
-        self.modify_bit(bit_index, BitmapSliceOperation::Clear);
-    }
-
-    ///
-    /// This routine clears the range of bits in the provided `bit_range`.
-    /// 
-    pub fn clear_bit_range(&mut self, bit_range: Range<usize>) {
-        self.modify_bit_range(bit_range, BitmapSliceOperation::Clear);
-    }
-
-    ///
-    /// This routine sets the bit at the provided index.
-    /// 
-    pub fn set_bit(&mut self, bit_index: usize) {
-        self.modify_bit(bit_index, BitmapSliceOperation::Set);
-    }
-
-    ///
-    /// This routine sets the range of bits in the provided `bit_range`.
-    /// 
-    pub fn set_bit_range(&mut self, bit_range: Range<usize>) {
-        self.modify_bit_range(bit_range, BitmapSliceOperation::Set);
-    }
 
     ///
     /// This routine splits this bitmap slice into two mutable subslices. The first
@@ -469,17 +324,49 @@ impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Mut> {
         }
     }
 
+}
+
+impl<'a, B: BitStore> BitmapOptsMut for BitmapSliceImpl<'a, B, Mut> {
+    
+    ///
+    /// This routine clears the bit at the provided index.
+    /// 
+    fn clear_bit(&mut self, bit_index: usize) {
+        self.modify_bit(bit_index, BitmapSliceOperation::Clear);
+    }
+
+    ///
+    /// This routine clears the range of bits in the provided `bit_range`.
+    /// 
+    fn clear_bit_range(&mut self, bit_range: Range<usize>) {
+        self.modify_bit_range(bit_range, BitmapSliceOperation::Clear);
+    }
+
+    ///
+    /// This routine sets the bit at the provided index.
+    /// 
+    fn set_bit(&mut self, bit_index: usize) {
+        self.modify_bit(bit_index, BitmapSliceOperation::Set);
+    }
+
+    ///
+    /// This routine sets the range of bits in the provided `bit_range`.
+    /// 
+    fn set_bit_range(&mut self, bit_range: Range<usize>) {
+        self.modify_bit_range(bit_range, BitmapSliceOperation::Set);
+    }
+    
     ///
     /// This routine toggles the bit at the provided index.
     /// 
-    pub fn toggle_bit(&mut self, bit_index: usize) {
+    fn toggle_bit(&mut self, bit_index: usize) {
         self.modify_bit(bit_index, BitmapSliceOperation::Toggle);
     }
 
     ///
     /// This routine toggles the range of bits in the provided `bit_range`.
     /// 
-    pub fn toggle_bit_range(&mut self, bit_range: Range<usize>) {
+    fn toggle_bit_range(&mut self, bit_range: Range<usize>) {
         self.modify_bit_range(bit_range, BitmapSliceOperation::Toggle);
     }
 

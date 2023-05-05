@@ -3,6 +3,7 @@ use super::BitmapSliceImpl;
 
 use crate::polyfill::Const;
 use crate::store::BitStore;
+use crate::traits::BitmapOpts;
 
 ///
 /// An iterator over each set bit in a bitmap slice.
