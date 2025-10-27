@@ -4,9 +4,9 @@ use crate::polyfill::{Mut, Mutability};
 use crate::store::BitStore;
 use crate::traits::BitmapOpts;
 
-use std::marker::PhantomData;
-use std::ops::Range;
-use std::ptr::{self, NonNull};
+use core::marker::PhantomData;
+use core::ops::Range;
+use core::ptr::{self, NonNull};
 
 #[derive(Clone, Copy, Debug)]
 pub(super) enum BitmapSliceOperation {

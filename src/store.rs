@@ -1,6 +1,6 @@
 
-use std::cmp::PartialEq;
-use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not};
+use core::cmp::PartialEq;
+use core::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not};
 
 ///
 /// Returns the minimum required size of an array of type B to contain enough

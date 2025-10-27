@@ -1,5 +1,5 @@
 
-use std::ops::Range;
+use core::ops::Range;
 
 pub trait BitmapOpts {
 
@@ -58,7 +58,7 @@ pub trait BitmapOpts {
     fn find_next_clear_range_from_capped(&self, starting_bit: usize, maximum_run_length: usize) -> Option<(usize, usize)> {
         self.find_next_clear_in_range(starting_bit..self.size())
             .map(|first_clear_bit| {
-                let maximum_run_length = std::cmp::min(maximum_run_length, self.size() - first_clear_bit);
+                let maximum_run_length = core::cmp::min(maximum_run_length, self.size() - first_clear_bit);
                 let next_set_bit =
                     self.find_next_set_in_range((first_clear_bit + 1)..(first_clear_bit + maximum_run_length))
                         .unwrap_or(first_clear_bit + maximum_run_length);
@@ -122,7 +122,7 @@ pub trait BitmapOpts {
     fn find_next_set_range_from_capped(&self, starting_bit: usize, maximum_run_length: usize) -> Option<(usize, usize)> {
         self.find_next_set_in_range(starting_bit..self.size())
             .map(|first_set_bit| {
-                let maximum_run_length = std::cmp::min(maximum_run_length, self.size() - first_set_bit);
+                let maximum_run_length = core::cmp::min(maximum_run_length, self.size() - first_set_bit);
                 let next_clear_bit =
                     self.find_next_clear_in_range((first_set_bit + 1)..(first_set_bit + maximum_run_length))
                         .unwrap_or(first_set_bit + maximum_run_length);

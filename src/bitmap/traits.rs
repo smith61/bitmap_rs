@@ -3,7 +3,7 @@ use super::Bitmap;
 
 use crate::store::BitStore;
 
-use std::ops::{BitAndAssign, BitOrAssign, BitXorAssign};
+use core::ops::{BitAndAssign, BitOrAssign, BitXorAssign};
 
 impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]>, O: AsRef<[B]>> BitAndAssign<Bitmap<O, B>> for Bitmap<S, B> {
 

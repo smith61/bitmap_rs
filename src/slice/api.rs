@@ -6,9 +6,9 @@ use crate::polyfill::{Const, Mut, Mutability};
 use super::{BitmapSliceIter, BitmapSliceRangeIter};
 use super::internal::BitmapSliceOperation;
 
-use std::marker::PhantomData;
-use std::ops::Range;
-use std::ptr::NonNull;
+use core::marker::PhantomData;
+use core::ops::Range;
+use core::ptr::NonNull;
 
 ///
 /// Implements a bitmap slice over a subslice of a bitmap. A bitmap slice can be
@@ -136,7 +136,7 @@ impl<'a, B: BitStore, M: Mutability> BitmapSliceImpl<'a, B, M> {
     /// Temporarily downgrades this potentially mutable slice into a non-mutable
     /// slice over the same range of bits.
     /// 
-    pub fn as_const(&self) -> BitmapSliceImpl<B, Const> {
+    pub fn as_const<'b>(&'b self) -> BitmapSliceImpl<'b, B, Const> {
         unsafe {
             BitmapSliceImpl::from_raw_parts(self.buffer_address, self.first_bit_offset, self.bit_count)
         }
@@ -145,14 +145,14 @@ impl<'a, B: BitStore, M: Mutability> BitmapSliceImpl<'a, B, M> {
     ///
     /// Returns an iterator over all set bits in this slice.
     /// 
-    pub fn iter(&self) -> BitmapSliceIter<B> {
+    pub fn iter<'b>(&'b self) -> BitmapSliceIter<'b, B> {
         BitmapSliceIter::new(self.as_const())
     }
 
     ///
     /// Returns an iterator over all ranges of set bits in this slice.
     /// 
-    pub fn range_iter(&self) -> BitmapSliceRangeIter<B> {
+    pub fn range_iter<'b>(&'b self) -> BitmapSliceRangeIter<'b, B> {
         BitmapSliceRangeIter::new(self.as_const())
     }
 
@@ -194,7 +194,7 @@ impl<'a, B: BitStore, M: Mutability> BitmapSliceImpl<'a, B, M> {
     /// This routine returns a [BitmapSlice](crate::slice::BitmapSlice) starting at the first bit
     /// in the range (inclusive), and ending at the last bit in the range (exclusive).
     /// 
-    pub fn subslice(&self, bit_range: Range<usize>) -> BitmapSliceImpl<B, Const> {
+    pub fn subslice<'b>(&'b self, bit_range: Range<usize>) -> BitmapSliceImpl<'b, B, Const> {
         let (bit_start, bit_end, bit_count) = (bit_range.start, bit_range.end, bit_range.count());
         if bit_start > bit_end {
             panic!("Invalid bit range start ({}) > end ({})", bit_start, bit_end);
@@ -297,7 +297,7 @@ impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Mut> {
     /// first bit in the range (inclusive), and ending at the last bit in the range
     /// (exclusive).
     /// 
-    pub fn subslice_mut(&mut self, bit_range: Range<usize>) -> BitmapSliceImpl<B, Mut> {
+    pub fn subslice_mut<'b>(&'b mut self, bit_range: Range<usize>) -> BitmapSliceImpl<'b, B, Mut> {
         let (bit_start, bit_end, bit_count) = (bit_range.start, bit_range.end, bit_range.count());
         if bit_start > bit_end {
             panic!("Invalid bit range start ({}) > end ({})", bit_start, bit_end);

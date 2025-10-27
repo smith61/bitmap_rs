@@ -3,8 +3,8 @@ use crate::slice::{BitmapSlice, BitmapSliceIter, BitmapSliceMut, BitmapSliceRang
 use crate::store::BitStore;
 use crate::traits::{BitmapOpts, BitmapOptsMut};
 
-use std::marker::PhantomData;
-use std::ops::Range;
+use core::marker::PhantomData;
+use core::ops::Range;
 
 ///
 /// Implements a bitmap over any type that can be converted to a reference to a slice.
@@ -54,7 +54,7 @@ impl<S: AsRef<[B]> + ?Sized, B: BitStore> Bitmap<S, B> {
     /// 
     /// Panics if the backing storage is larger than [MAXIMUM_BUFFER_SIZE](crate::bitmap::Bitmap::MAXIMUM_BUFFER_SIZE)
     /// 
-    pub fn as_slice(&self) -> BitmapSlice<B> {
+    pub fn as_slice<'a>(&'a self) -> BitmapSlice<'a, B> {
         let buffer = self.bitmap_store.as_ref();
         if buffer.len() > Self::MAXIMUM_BUFFER_SIZE {
             panic!("Bitmap buffer is too large ({} > {})", buffer.len(), Self::MAXIMUM_BUFFER_SIZE);
@@ -68,14 +68,14 @@ impl<S: AsRef<[B]> + ?Sized, B: BitStore> Bitmap<S, B> {
     ///
     /// Returns an iterator over all set bits in this bitmap.
     /// 
-    pub fn iter(&self) -> BitmapSliceIter<B> {
+    pub fn iter<'a>(&'a self) -> BitmapSliceIter<'a, B> {
         BitmapSliceIter::new(self.as_slice())
     }
 
     ///
     /// Returns an iterator over all ranges of set bits in this bitmap.
     /// 
-    pub fn range_iter(&self) -> BitmapSliceRangeIter<B> {
+    pub fn range_iter<'a>(&'a self) -> BitmapSliceRangeIter<'a, B> {
         BitmapSliceRangeIter::new(self.as_slice())
     }
 
@@ -83,7 +83,7 @@ impl<S: AsRef<[B]> + ?Sized, B: BitStore> Bitmap<S, B> {
     /// This routine returns a [slice::BitmapSlice](BitmapSlice) starting at the first bit
     /// in the range (inclusive), and ending at the last bit in the range (exclusive).
     /// 
-    pub fn subslice(&self, bit_range: Range<usize>) -> BitmapSlice<B> {
+    pub fn subslice<'a>(&'a self, bit_range: Range<usize>) -> BitmapSlice<'a, B> {
         BitmapSlice::new(self.bitmap_store.as_ref(), bit_range)
     }
 
@@ -133,7 +133,7 @@ impl<S: AsRef<[B]> + AsMut<[B]> + ?Sized, B: BitStore> Bitmap<S, B> {
     /// 
     /// Panics if the backing storage is larger than [MAXIMUM_BUFFER_SIZE](crate::bitmap::Bitmap::MAXIMUM_BUFFER_SIZE)
     /// 
-    pub fn as_slice_mut(&mut self) -> BitmapSliceMut<B> {
+    pub fn as_slice_mut<'a>(&'a mut self) -> BitmapSliceMut<'a, B> {
         let buffer = self.bitmap_store.as_mut();
         if buffer.len() > Self::MAXIMUM_BUFFER_SIZE {
             panic!("Bitmap buffer is too large ({} > {})", buffer.len(), Self::MAXIMUM_BUFFER_SIZE);
@@ -149,7 +149,7 @@ impl<S: AsRef<[B]> + AsMut<[B]> + ?Sized, B: BitStore> Bitmap<S, B> {
     /// first bit in the range (inclusive), and ending at the last bit in the range
     /// (exclusive).
     /// 
-    pub fn subslice_mut(&mut self, bit_range: Range<usize>) -> BitmapSliceMut<B> {
+    pub fn subslice_mut<'a>(&'a mut self, bit_range: Range<usize>) -> BitmapSliceMut<'a, B> {
         BitmapSliceMut::new(self.bitmap_store.as_mut(), bit_range)
     }
 
