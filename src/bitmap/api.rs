@@ -3,6 +3,7 @@ use crate::store::BitStore;
 use crate::traits::{BitmapOpts, BitmapOptsMut};
 
 use core::marker::PhantomData;
+use core::mem;
 use core::ops::Range;
 
 ///
@@ -15,6 +16,7 @@ use core::ops::Range;
 /// This allows for a Bitmap instance to grow or shrink if the underlying storage
 /// supports a dynamic size.
 ///
+#[repr(transparent)]
 pub struct Bitmap<S: ?Sized, B = usize> {
     pub(super) _bs: PhantomData<*const B>,
     pub(super) bitmap_store: S,
@@ -36,6 +38,26 @@ impl<S, B> Bitmap<S, B> {
     ///
     pub fn into_inner(self) -> S {
         self.bitmap_store
+    }
+}
+
+impl<B> Bitmap<[B], B> {
+    ///
+    /// Converts a `&[B]`` into an `&Bitmap<[B]>``
+    /// 
+    pub fn from_slice<'a>(store: &'a [B]) -> &'a Self {
+        unsafe {
+            mem::transmute(store)
+        }
+    }
+
+    ///
+    /// Converts a `&mut [B]` into an `&mut Bitmap<[B]>`
+    /// 
+    pub fn from_slice_mut<'a>(store: &'a mut [B]) -> &'a mut Self {
+        unsafe {
+            mem::transmute(store)
+        }
     }
 }
 

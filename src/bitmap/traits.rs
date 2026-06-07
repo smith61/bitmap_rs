@@ -4,7 +4,7 @@ use crate::store::BitStore;
 
 use core::ops::{BitAndAssign, BitOrAssign, BitXorAssign};
 
-impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]>, O: AsRef<[B]>> BitAndAssign<Bitmap<O, B>>
+impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]> + ?Sized, O: AsRef<[B]>> BitAndAssign<Bitmap<O, B>>
     for Bitmap<S, B>
 {
     fn bitand_assign(&mut self, rhs: Bitmap<O, B>) {
@@ -12,7 +12,7 @@ impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]>, O: AsRef<[B]>> BitAndAssign<Bitmap
     }
 }
 
-impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]>, O: AsRef<[B]>> BitAndAssign<&Bitmap<O, B>>
+impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]> + ?Sized, O: AsRef<[B]> + ?Sized> BitAndAssign<&Bitmap<O, B>>
     for Bitmap<S, B>
 {
     fn bitand_assign(&mut self, rhs: &Bitmap<O, B>) {
@@ -24,7 +24,7 @@ impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]>, O: AsRef<[B]>> BitAndAssign<&Bitma
     }
 }
 
-impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]>, O: AsRef<[B]>> BitOrAssign<Bitmap<O, B>>
+impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]> + ?Sized, O: AsRef<[B]>> BitOrAssign<Bitmap<O, B>>
     for Bitmap<S, B>
 {
     fn bitor_assign(&mut self, rhs: Bitmap<O, B>) {
@@ -32,7 +32,7 @@ impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]>, O: AsRef<[B]>> BitOrAssign<Bitmap<
     }
 }
 
-impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]>, O: AsRef<[B]>> BitOrAssign<&Bitmap<O, B>>
+impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]> + ?Sized, O: AsRef<[B]> + ?Sized> BitOrAssign<&Bitmap<O, B>>
     for Bitmap<S, B>
 {
     fn bitor_assign(&mut self, rhs: &Bitmap<O, B>) {
@@ -44,7 +44,7 @@ impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]>, O: AsRef<[B]>> BitOrAssign<&Bitmap
     }
 }
 
-impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]>, O: AsRef<[B]>> BitXorAssign<Bitmap<O, B>>
+impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]> + ?Sized, O: AsRef<[B]>> BitXorAssign<Bitmap<O, B>>
     for Bitmap<S, B>
 {
     fn bitxor_assign(&mut self, rhs: Bitmap<O, B>) {
@@ -52,7 +52,7 @@ impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]>, O: AsRef<[B]>> BitXorAssign<Bitmap
     }
 }
 
-impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]>, O: AsRef<[B]>> BitXorAssign<&Bitmap<O, B>>
+impl<B: BitStore, S: AsRef<[B]> + AsMut<[B]> + ?Sized, O: AsRef<[B]> + ?Sized> BitXorAssign<&Bitmap<O, B>>
     for Bitmap<S, B>
 {
     fn bitxor_assign(&mut self, rhs: &Bitmap<O, B>) {
