@@ -46,7 +46,7 @@ impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Const> {
 
         } else {
             let starting_slot = bit_range.start / B::BIT_COUNT;
-            let ending_slot = crate::polyfill::div_ceil(bit_range.end, B::BIT_COUNT);
+            let ending_slot = bit_range.end.div_ceil(B::BIT_COUNT);
             if (starting_slot >= bit_range.len()) ||
                (ending_slot > bit_range.len()) {
 
@@ -94,7 +94,7 @@ impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Mut> {
 
         } else {
             let starting_slot = bit_range.start / B::BIT_COUNT;
-            let ending_slot = crate::polyfill::div_ceil(bit_range.end, B::BIT_COUNT);
+            let ending_slot = bit_range.end.div_ceil(B::BIT_COUNT);
             if (starting_slot >= bit_range.len()) ||
                (ending_slot > bit_range.len()) {
 

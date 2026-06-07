@@ -7,7 +7,7 @@ use core::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, 
 /// space for `bit_count` addressable bits.
 /// 
 pub const fn array_size_for_bit_count<B: BitStore>(bit_count: usize) -> usize {
-    crate::polyfill::div_ceil(bit_count, B::BIT_COUNT)
+    bit_count.div_ceil(B::BIT_COUNT)
 }
 
 ///

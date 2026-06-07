@@ -46,7 +46,7 @@ impl<'a, B: BitStore, M: Mutability> BitmapSliceImpl<'a, B, M> {
 
         let (starting_slot, starting_offset) = self.translate_bit_index(range.start);
         let ending_bit = range.end + (self.first_bit_offset as usize);
-        let ending_slot = crate::polyfill::div_ceil(ending_bit, B::BIT_COUNT);
+        let ending_slot = ending_bit.div_ceil(B::BIT_COUNT);
 
         let mut current_slot = starting_slot;
         let mut buffer = unsafe { self.buffer_address.as_ptr().add(starting_slot) };

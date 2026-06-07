@@ -42,14 +42,3 @@ impl self::seal::Sealed for Mut { }
 impl Mutability for Mut {
     const IS_MUTABLE: bool = true;
 }
-
-
-pub(crate) const fn div_ceil(lhs: usize, rhs: usize) -> usize {
-    let result = lhs / rhs;
-    if (lhs % rhs) != 0 {
-        result + 1
-
-    } else {
-        result
-    }
-}
