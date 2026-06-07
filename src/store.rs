@@ -74,142 +74,36 @@ impl BitStore for bool {
     }
 
     fn trailing_zeros(self) -> usize {
-        if self {
-            0
-        } else {
-            1
-        }
+        if self { 0 } else { 1 }
     }
 }
 
-impl BitStore for u8 {
-    const BIT_COUNT: usize = Self::BITS as usize;
-    const ZERO: Self = 0;
-    const MAX: Self = Self::MAX;
+macro_rules! impl_bitstore_uint {
+    ($($t: ty),+) => {
+        $(
+            impl BitStore for $t {
+                const BIT_COUNT: usize = Self::BITS as usize;
+                const ZERO: Self = 0;
+                const MAX: Self = Self::MAX;
 
-    fn create_bit_mask(bit_index: usize) -> Self {
-        1 << bit_index
-    }
+                fn create_bit_mask(bit_index: usize) -> Self {
+                    1 << bit_index
+                }
 
-    fn create_range_mask(start_bit: usize, bit_count: usize) -> Self {
-        if bit_count == Self::BIT_COUNT {
-            Self::MAX
-        } else {
-            ((1 << bit_count) - 1) << start_bit
-        }
-    }
+                fn create_range_mask(start_bit: usize, bit_count: usize) -> Self {
+                    if bit_count == Self::BIT_COUNT {
+                        Self::MAX
+                    } else {
+                        ((1 << bit_count) - 1) << start_bit
+                    }
+                }
 
-    fn trailing_zeros(self) -> usize {
-        Self::trailing_zeros(self) as usize
-    }
+                fn trailing_zeros(self) -> usize {
+                    Self::trailing_zeros(self) as usize
+                }
+            }
+        )*
+    };
 }
 
-impl BitStore for u16 {
-    const BIT_COUNT: usize = Self::BITS as usize;
-    const ZERO: Self = 0;
-    const MAX: Self = Self::MAX;
-
-    fn create_bit_mask(bit_index: usize) -> Self {
-        1 << bit_index
-    }
-
-    fn create_range_mask(start_bit: usize, bit_count: usize) -> Self {
-        if bit_count == Self::BIT_COUNT {
-            Self::MAX
-        } else {
-            ((1 << bit_count) - 1) << start_bit
-        }
-    }
-
-    fn trailing_zeros(self) -> usize {
-        Self::trailing_zeros(self) as usize
-    }
-}
-
-impl BitStore for u32 {
-    const BIT_COUNT: usize = u32::BITS as usize;
-    const ZERO: Self = 0;
-    const MAX: Self = u32::MAX;
-
-    fn create_bit_mask(bit_index: usize) -> Self {
-        1 << bit_index
-    }
-
-    fn create_range_mask(start_bit: usize, bit_count: usize) -> Self {
-        if bit_count == Self::BIT_COUNT {
-            Self::MAX
-        } else {
-            ((1 << bit_count) - 1) << start_bit
-        }
-    }
-
-    fn trailing_zeros(self) -> usize {
-        Self::trailing_zeros(self) as usize
-    }
-}
-
-impl BitStore for u64 {
-    const BIT_COUNT: usize = Self::BITS as usize;
-    const ZERO: Self = 0;
-    const MAX: Self = Self::MAX;
-
-    fn create_bit_mask(bit_index: usize) -> Self {
-        1 << bit_index
-    }
-
-    fn create_range_mask(start_bit: usize, bit_count: usize) -> Self {
-        if bit_count == Self::BIT_COUNT {
-            Self::MAX
-        } else {
-            ((1 << bit_count) - 1) << start_bit
-        }
-    }
-
-    fn trailing_zeros(self) -> usize {
-        Self::trailing_zeros(self) as usize
-    }
-}
-
-impl BitStore for u128 {
-    const BIT_COUNT: usize = Self::BITS as usize;
-    const ZERO: Self = 0;
-    const MAX: Self = Self::MAX;
-
-    fn create_bit_mask(bit_index: usize) -> Self {
-        1 << bit_index
-    }
-
-    fn create_range_mask(start_bit: usize, bit_count: usize) -> Self {
-        if bit_count == Self::BIT_COUNT {
-            Self::MAX
-        } else {
-            ((1 << bit_count) - 1) << start_bit
-        }
-    }
-
-    fn trailing_zeros(self) -> usize {
-        Self::trailing_zeros(self) as usize
-    }
-}
-
-impl BitStore for usize {
-    const BIT_COUNT: usize = usize::BITS as usize;
-    const ZERO: Self = 0;
-    const MAX: Self = usize::MAX;
-
-    fn create_bit_mask(bit_index: usize) -> Self {
-        1 << bit_index
-    }
-
-    fn create_range_mask(start_bit: usize, bit_count: usize) -> Self {
-        if bit_count == Self::BIT_COUNT {
-            Self::MAX
-        } else {
-            ((1 << bit_count) - 1) << start_bit
-        }
-    }
-
-    fn trailing_zeros(self) -> usize {
-        Self::trailing_zeros(self) as usize
-    }
-}
+impl_bitstore_uint!(u8, u16, u32, u64, u128, usize);
