@@ -69,11 +69,13 @@ impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Const> {
     /// and hence this routine is marked as unsafe.
     ///
     pub unsafe fn new_unchecked(buffer: &'a [B], first_bit_offset: u8, bit_count: usize) -> Self {
-        let buffer_address = NonNull::new_unchecked(buffer.as_ptr() as *mut _);
+        unsafe {
+            let buffer_address = NonNull::new_unchecked(buffer.as_ptr() as *mut _);
 
-        debug_assert!((first_bit_offset as usize) < B::BIT_COUNT);
+            debug_assert!((first_bit_offset as usize) < B::BIT_COUNT);
 
-        Self::from_raw_parts(buffer_address, first_bit_offset, bit_count)
+            Self::from_raw_parts(buffer_address, first_bit_offset, bit_count)
+        }
     }
 }
 
@@ -121,11 +123,13 @@ impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Mut> {
         first_bit_offset: u8,
         bit_count: usize,
     ) -> Self {
-        let buffer_address = NonNull::new_unchecked(buffer.as_mut_ptr());
+        unsafe {
+            let buffer_address = NonNull::new_unchecked(buffer.as_mut_ptr());
 
-        debug_assert!((first_bit_offset as usize) < B::BIT_COUNT);
+            debug_assert!((first_bit_offset as usize) < B::BIT_COUNT);
 
-        Self::from_raw_parts(buffer_address, first_bit_offset, bit_count)
+            Self::from_raw_parts(buffer_address, first_bit_offset, bit_count)
+        }
     }
 }
 

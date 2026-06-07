@@ -17,10 +17,12 @@ pub(super) enum BitmapSliceOperation {
 impl BitmapSliceOperation {
     #[inline(always)]
     pub(super) unsafe fn apply<B: BitStore>(&self, target: *mut B, mask: B) {
-        match self {
-            BitmapSliceOperation::Clear => *target &= !mask,
-            BitmapSliceOperation::Set => *target |= mask,
-            BitmapSliceOperation::Toggle => *target ^= mask,
+        unsafe {
+            match self {
+                BitmapSliceOperation::Clear => *target &= !mask,
+                BitmapSliceOperation::Set => *target |= mask,
+                BitmapSliceOperation::Toggle => *target ^= mask,
+            }
         }
     }
 }
