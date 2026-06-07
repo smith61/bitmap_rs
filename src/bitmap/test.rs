@@ -1,4 +1,3 @@
-
 use super::*;
 use crate::traits::{BitmapOpts, BitmapOptsMut};
 
@@ -10,7 +9,7 @@ fn test_and_assign() {
     {
         let mut bitmap_1 = Bitmap::new(&mut buffer_1);
         let mut bitmap_2 = Bitmap::new(&mut buffer_2);
-        
+
         bitmap_1.set_bit_range(0..32);
         bitmap_2.set_bit_range(16..48);
         bitmap_1 &= bitmap_2;
@@ -27,7 +26,7 @@ fn test_or_assign() {
     {
         let mut bitmap_1 = Bitmap::new(&mut buffer_1);
         let mut bitmap_2 = Bitmap::new(&mut buffer_2);
-        
+
         bitmap_1.set_bit_range(0..32);
         bitmap_2.set_bit_range(16..48);
         bitmap_1 |= bitmap_2;
@@ -44,7 +43,7 @@ fn test_xor_assign() {
     {
         let mut bitmap_1 = Bitmap::new(&mut buffer_1);
         let mut bitmap_2 = Bitmap::new(&mut buffer_2);
-        
+
         bitmap_1.set_bit_range(0..32);
         bitmap_2.set_bit_range(16..48);
         bitmap_1 ^= bitmap_2;
@@ -79,10 +78,16 @@ fn test_find_next_clear_range() {
     assert_eq!(bitmap.find_next_clear_range_from(0), Some((0, 4)));
     assert_eq!(bitmap.find_next_clear_range_from_capped(0, 2), Some((0, 2)));
     assert_eq!(bitmap.find_next_clear_range_from(2), Some((2, 2)));
-    assert_eq!(bitmap.find_next_clear_range_from_capped(2, 10), Some((2, 2)));
+    assert_eq!(
+        bitmap.find_next_clear_range_from_capped(2, 10),
+        Some((2, 2))
+    );
     assert_eq!(bitmap.find_next_clear_range_from_capped(2, 1), Some((2, 1)));
     assert_eq!(bitmap.find_next_clear_range_from(5), Some((20, 4)));
-    assert_eq!(bitmap.find_next_clear_range_from_capped(5, 2), Some((20, 2)));
+    assert_eq!(
+        bitmap.find_next_clear_range_from_capped(5, 2),
+        Some((20, 2))
+    );
     assert_eq!(bitmap.find_next_clear_range_from(24), None);
 }
 
@@ -135,7 +140,7 @@ fn test_set_bit() {
     for index in 8..16 {
         bitmap.set_bit(index);
     }
-    
+
     bitmap.set_bit(bitmap.size() - 1);
 
     assert_eq!(buffer, [0b01010101, 0b11111111, 0b10000000]);

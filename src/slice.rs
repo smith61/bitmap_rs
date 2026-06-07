@@ -1,7 +1,6 @@
-
 mod api;
-mod iter;
 mod internal;
+mod iter;
 
 #[cfg(test)]
 mod test;
@@ -13,10 +12,10 @@ pub use self::iter::{BitmapSliceIter, BitmapSliceRangeIter};
 
 ///
 /// Alias for a non-mutable [slice::BitmapSliceImpl](BitmapSliceImpl).
-/// 
+///
 pub type BitmapSlice<'a, B = usize> = BitmapSliceImpl<'a, B, Const>;
 
 ///
 /// Alias for a mutable [slice::BitmapSliceImpl](BitmapSliceImpl).
-/// 
+///
 pub type BitmapSliceMut<'a, B = usize> = BitmapSliceImpl<'a, B, Mut>;

@@ -1,10 +1,9 @@
-
+use crate::polyfill::{Const, Mut, Mutability};
 use crate::store::BitStore;
 use crate::traits::{BitmapOpts, BitmapOptsMut};
-use crate::polyfill::{Const, Mut, Mutability};
 
-use super::{BitmapSliceIter, BitmapSliceRangeIter};
 use super::internal::BitmapSliceOperation;
+use super::{BitmapSliceIter, BitmapSliceRangeIter};
 
 use core::marker::PhantomData;
 use core::ops::Range;
@@ -14,46 +13,43 @@ use core::ptr::NonNull;
 /// Implements a bitmap slice over a subslice of a bitmap. A bitmap slice can be
 /// mutable, if the provided storage is mutable and can be split or shrunk as
 /// needed. A bitmap slice does not support owning the underlying storage.
-/// 
+///
 pub struct BitmapSliceImpl<'a, B: BitStore, M: Mutability> {
     pub(super) buffer_address: NonNull<B>,
     pub(super) bit_count: usize,
     pub(super) first_bit_offset: u8,
     pub(super) _lt: PhantomData<(&'a [B], &'a mut [B])>,
-    pub(super) _mut: PhantomData<M>
+    pub(super) _mut: PhantomData<M>,
 }
 
-impl<'a, B: BitStore> Copy for BitmapSliceImpl<'a, B, Const> { }
+impl<'a, B: BitStore> Copy for BitmapSliceImpl<'a, B, Const> {}
 impl<'a, B: BitStore> Clone for BitmapSliceImpl<'a, B, Const> {
-
     fn clone(&self) -> Self {
-        unsafe {
-            Self::from_raw_parts(self.buffer_address, self.first_bit_offset, self.bit_count)
-        }
+        unsafe { Self::from_raw_parts(self.buffer_address, self.first_bit_offset, self.bit_count) }
     }
-
 }
 
 impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Const> {
-
     ///
     /// Creates a new non-mutable slice over the provided storage covering the
     /// provided range.
-    /// 
+    ///
     pub fn new(mut buffer: &'a [B], bit_range: Range<usize>) -> Self {
         if bit_range.start > bit_range.end {
-            panic!("Invalid bit range start ({}) > end ({})", bit_range.start, bit_range.end);
-
+            panic!(
+                "Invalid bit range start ({}) > end ({})",
+                bit_range.start, bit_range.end
+            );
         } else {
             let starting_slot = bit_range.start / B::BIT_COUNT;
             let ending_slot = bit_range.end.div_ceil(B::BIT_COUNT);
-            if (starting_slot >= bit_range.len()) ||
-               (ending_slot > bit_range.len()) {
-
-                panic!("Invalid bit range [{}:{}] for buffer of size {}",
-                       starting_slot,
-                       ending_slot,
-                       buffer.len());
+            if (starting_slot >= bit_range.len()) || (ending_slot > bit_range.len()) {
+                panic!(
+                    "Invalid bit range [{}:{}] for buffer of size {}",
+                    starting_slot,
+                    ending_slot,
+                    buffer.len()
+                );
             }
 
             buffer = &buffer[starting_slot..ending_slot];
@@ -71,7 +67,7 @@ impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Const> {
     /// less than `B::BIT_COUNT` and `bit_count` must be less than or equal to
     /// `buffer.len() * B::BIT_COUNT - first_bit_offset`. These conditions are not checked
     /// and hence this routine is marked as unsafe.
-    /// 
+    ///
     pub unsafe fn new_unchecked(buffer: &'a [B], first_bit_offset: u8, bit_count: usize) -> Self {
         let buffer_address = NonNull::new_unchecked(buffer.as_ptr() as *mut _);
 
@@ -79,29 +75,29 @@ impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Const> {
 
         Self::from_raw_parts(buffer_address, first_bit_offset, bit_count)
     }
-
 }
 
 impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Mut> {
-
     ///
     /// Creates a new mutable slice over the provided storage covering the
     /// provided range.
-    /// 
+    ///
     pub fn new(mut buffer: &'a mut [B], bit_range: Range<usize>) -> Self {
         if bit_range.start > bit_range.end {
-            panic!("Invalid bit range start ({}) > end ({})", bit_range.start, bit_range.end);
-
+            panic!(
+                "Invalid bit range start ({}) > end ({})",
+                bit_range.start, bit_range.end
+            );
         } else {
             let starting_slot = bit_range.start / B::BIT_COUNT;
             let ending_slot = bit_range.end.div_ceil(B::BIT_COUNT);
-            if (starting_slot >= bit_range.len()) ||
-               (ending_slot > bit_range.len()) {
-
-                panic!("Invalid bit range [{}:{}] for buffer of size {}",
-                       starting_slot,
-                       ending_slot,
-                       buffer.len());
+            if (starting_slot >= bit_range.len()) || (ending_slot > bit_range.len()) {
+                panic!(
+                    "Invalid bit range [{}:{}] for buffer of size {}",
+                    starting_slot,
+                    ending_slot,
+                    buffer.len()
+                );
             }
 
             buffer = &mut buffer[starting_slot..ending_slot];
@@ -119,39 +115,45 @@ impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Mut> {
     /// less than `B::BIT_COUNT` and `bit_count` must be less than or equal to
     /// `buffer.len() * B::BIT_COUNT - first_bit_offset`. These conditions are not checked
     /// and hence this routine is marked as unsafe.
-    /// 
-    pub unsafe fn new_unchecked(buffer: &'a mut [B], first_bit_offset: u8, bit_count: usize) -> Self {
+    ///
+    pub unsafe fn new_unchecked(
+        buffer: &'a mut [B],
+        first_bit_offset: u8,
+        bit_count: usize,
+    ) -> Self {
         let buffer_address = NonNull::new_unchecked(buffer.as_mut_ptr());
 
         debug_assert!((first_bit_offset as usize) < B::BIT_COUNT);
 
         Self::from_raw_parts(buffer_address, first_bit_offset, bit_count)
     }
-
 }
 
 impl<'a, B: BitStore, M: Mutability> BitmapSliceImpl<'a, B, M> {
-
     ///
     /// Temporarily downgrades this potentially mutable slice into a non-mutable
     /// slice over the same range of bits.
-    /// 
+    ///
     pub fn as_const<'b>(&'b self) -> BitmapSliceImpl<'b, B, Const> {
         unsafe {
-            BitmapSliceImpl::from_raw_parts(self.buffer_address, self.first_bit_offset, self.bit_count)
+            BitmapSliceImpl::from_raw_parts(
+                self.buffer_address,
+                self.first_bit_offset,
+                self.bit_count,
+            )
         }
     }
 
     ///
     /// Returns an iterator over all set bits in this slice.
-    /// 
+    ///
     pub fn iter<'b>(&'b self) -> BitmapSliceIter<'b, B> {
         BitmapSliceIter::new(self.as_const())
     }
 
     ///
     /// Returns an iterator over all ranges of set bits in this slice.
-    /// 
+    ///
     pub fn range_iter<'b>(&'b self) -> BitmapSliceRangeIter<'b, B> {
         BitmapSliceRangeIter::new(self.as_const())
     }
@@ -161,8 +163,11 @@ impl<'a, B: BitStore, M: Mutability> BitmapSliceImpl<'a, B, M> {
     /// first slice starts at the same bit as this slice and ends at `bit_index` (exclusive).
     /// The second slice starts `bit_index` (inclusive) and ends at the same bit
     /// as this slice.
-    /// 
-    pub fn split_at(self, bit_index: usize) -> (BitmapSliceImpl<'a, B, Const>, BitmapSliceImpl<'a, B, Const>) {
+    ///
+    pub fn split_at(
+        self,
+        bit_index: usize,
+    ) -> (BitmapSliceImpl<'a, B, Const>, BitmapSliceImpl<'a, B, Const>) {
         if bit_index > self.bit_count {
             panic!("Invalid bit index ({} > {})", bit_index, self.bit_count);
         }
@@ -184,7 +189,11 @@ impl<'a, B: BitStore, M: Mutability> BitmapSliceImpl<'a, B, M> {
 
             let remaining_bit_count = self.bit_count - bit_index;
 
-            BitmapSliceImpl::from_raw_parts(buffer_address, real_first_bit_offset, remaining_bit_count)
+            BitmapSliceImpl::from_raw_parts(
+                buffer_address,
+                real_first_bit_offset,
+                remaining_bit_count,
+            )
         };
 
         (first_slice, second_slice)
@@ -193,17 +202,19 @@ impl<'a, B: BitStore, M: Mutability> BitmapSliceImpl<'a, B, M> {
     ///
     /// This routine returns a [BitmapSlice](crate::slice::BitmapSlice) starting at the first bit
     /// in the range (inclusive), and ending at the last bit in the range (exclusive).
-    /// 
+    ///
     pub fn subslice<'b>(&'b self, bit_range: Range<usize>) -> BitmapSliceImpl<'b, B, Const> {
         let (bit_start, bit_end, bit_count) = (bit_range.start, bit_range.end, bit_range.count());
         if bit_start > bit_end {
-            panic!("Invalid bit range start ({}) > end ({})", bit_start, bit_end);
-
+            panic!(
+                "Invalid bit range start ({}) > end ({})",
+                bit_start, bit_end
+            );
         } else if bit_count > self.bit_count {
-            panic!("Invalid bit range [{}:{}] for bit map slice of size {}",
-                   bit_start,
-                   bit_end,
-                   self.bit_count);
+            panic!(
+                "Invalid bit range [{}:{}] for bit map slice of size {}",
+                bit_start, bit_end, self.bit_count
+            );
         }
 
         let real_bit_start = bit_start + (self.first_bit_offset as usize);
@@ -217,23 +228,29 @@ impl<'a, B: BitStore, M: Mutability> BitmapSliceImpl<'a, B, M> {
                 NonNull::new_unchecked(buffer_address)
             };
 
-            BitmapSliceImpl::<B, Const>::from_raw_parts(buffer_address, real_first_bit_offset, bit_count)
+            BitmapSliceImpl::<B, Const>::from_raw_parts(
+                buffer_address,
+                real_first_bit_offset,
+                bit_count,
+            )
         }
     }
 
     ///
     /// Converts this slice into a const slice.
-    /// 
+    ///
     pub fn to_const_slice(self) -> BitmapSliceImpl<'a, B, Const> {
         unsafe {
-            BitmapSliceImpl::<'a, B, Const>::from_raw_parts(self.buffer_address, self.first_bit_offset, self.bit_count)
+            BitmapSliceImpl::<'a, B, Const>::from_raw_parts(
+                self.buffer_address,
+                self.first_bit_offset,
+                self.bit_count,
+            )
         }
     }
-
 }
 
 impl<'a, B: BitStore, M: Mutability> BitmapOpts for BitmapSliceImpl<'a, B, M> {
-    
     fn find_next_clear_in_range(&self, range: Range<usize>) -> Option<usize> {
         self.find_next_in_range::<true>(range)
     }
@@ -244,8 +261,7 @@ impl<'a, B: BitStore, M: Mutability> BitmapOpts for BitmapSliceImpl<'a, B, M> {
 
     fn get_bit(&self, bit_index: usize) -> bool {
         let (slot, offset) = self.translate_bit_index(bit_index);
-        let slot_contents = 
-            unsafe { self.buffer_address.as_ptr().add(slot).read() };
+        let slot_contents = unsafe { self.buffer_address.as_ptr().add(slot).read() };
 
         (slot_contents & B::create_bit_mask(offset)) != B::ZERO
     }
@@ -253,18 +269,19 @@ impl<'a, B: BitStore, M: Mutability> BitmapOpts for BitmapSliceImpl<'a, B, M> {
     fn size(&self) -> usize {
         self.bit_count
     }
-    
 }
 
 impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Mut> {
-
     ///
     /// This routine splits this bitmap slice into two mutable subslices. The first
     /// slice starts at the same bit as this slice and ends at `bit_index` (exclusive).
     /// The second slice starts `bit_index` (inclusive) and ends at the same bit
     /// as this slice.
-    /// 
-    pub fn split_at_mut(self, bit_index: usize) -> (BitmapSliceImpl<'a, B, Mut>, BitmapSliceImpl<'a, B, Mut>) {
+    ///
+    pub fn split_at_mut(
+        self,
+        bit_index: usize,
+    ) -> (BitmapSliceImpl<'a, B, Mut>, BitmapSliceImpl<'a, B, Mut>) {
         if bit_index > self.bit_count {
             panic!("Invalid bit index ({} > {})", bit_index, self.bit_count);
         }
@@ -286,7 +303,11 @@ impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Mut> {
 
             let remaining_bit_count = self.bit_count - bit_index;
 
-            BitmapSliceImpl::from_raw_parts(buffer_address, real_first_bit_offset, remaining_bit_count)
+            BitmapSliceImpl::from_raw_parts(
+                buffer_address,
+                real_first_bit_offset,
+                remaining_bit_count,
+            )
         };
 
         (first_slice, second_slice)
@@ -296,17 +317,19 @@ impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Mut> {
     /// This routine returns a [BitmapSliceMut](crate::slice::BitmapSliceMut) starting at the
     /// first bit in the range (inclusive), and ending at the last bit in the range
     /// (exclusive).
-    /// 
+    ///
     pub fn subslice_mut<'b>(&'b mut self, bit_range: Range<usize>) -> BitmapSliceImpl<'b, B, Mut> {
         let (bit_start, bit_end, bit_count) = (bit_range.start, bit_range.end, bit_range.count());
         if bit_start > bit_end {
-            panic!("Invalid bit range start ({}) > end ({})", bit_start, bit_end);
-
+            panic!(
+                "Invalid bit range start ({}) > end ({})",
+                bit_start, bit_end
+            );
         } else if bit_count > self.bit_count {
-            panic!("Invalid bit range [{}:{}] for bit map slice of size {}",
-                   bit_start,
-                   bit_end,
-                   self.bit_count);
+            panic!(
+                "Invalid bit range [{}:{}] for bit map slice of size {}",
+                bit_start, bit_end, self.bit_count
+            );
         }
 
         let real_bit_start = bit_start + (self.first_bit_offset as usize);
@@ -320,54 +343,55 @@ impl<'a, B: BitStore> BitmapSliceImpl<'a, B, Mut> {
                 NonNull::new_unchecked(buffer_address)
             };
 
-            BitmapSliceImpl::<B, Mut>::from_raw_parts(buffer_address, real_first_bit_offset, bit_count)
+            BitmapSliceImpl::<B, Mut>::from_raw_parts(
+                buffer_address,
+                real_first_bit_offset,
+                bit_count,
+            )
         }
     }
-
 }
 
 impl<'a, B: BitStore> BitmapOptsMut for BitmapSliceImpl<'a, B, Mut> {
-    
     ///
     /// This routine clears the bit at the provided index.
-    /// 
+    ///
     fn clear_bit(&mut self, bit_index: usize) {
         self.modify_bit(bit_index, BitmapSliceOperation::Clear);
     }
 
     ///
     /// This routine clears the range of bits in the provided `bit_range`.
-    /// 
+    ///
     fn clear_bit_range(&mut self, bit_range: Range<usize>) {
         self.modify_bit_range(bit_range, BitmapSliceOperation::Clear);
     }
 
     ///
     /// This routine sets the bit at the provided index.
-    /// 
+    ///
     fn set_bit(&mut self, bit_index: usize) {
         self.modify_bit(bit_index, BitmapSliceOperation::Set);
     }
 
     ///
     /// This routine sets the range of bits in the provided `bit_range`.
-    /// 
+    ///
     fn set_bit_range(&mut self, bit_range: Range<usize>) {
         self.modify_bit_range(bit_range, BitmapSliceOperation::Set);
     }
-    
+
     ///
     /// This routine toggles the bit at the provided index.
-    /// 
+    ///
     fn toggle_bit(&mut self, bit_index: usize) {
         self.modify_bit(bit_index, BitmapSliceOperation::Toggle);
     }
 
     ///
     /// This routine toggles the range of bits in the provided `bit_range`.
-    /// 
+    ///
     fn toggle_bit_range(&mut self, bit_range: Range<usize>) {
         self.modify_bit_range(bit_range, BitmapSliceOperation::Toggle);
     }
-
 }
